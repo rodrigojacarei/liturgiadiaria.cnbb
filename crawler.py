@@ -1,27 +1,55 @@
 #-*- coding:utf-8 -*-
 
+'''
+	necessária a instalação do pacote BeautifulSoup
+'''
+
 from bs4 import BeautifulSoup
 import urllib2
 
-url = "http://liturgiadiaria.cnbb.org.br/app/user/user/UserView.php"
 
-page = urllib2.urlopen(url)
-soap = BeautifulSoup(page)
+url_page = "http://liturgiadiaria.cnbb.org.br/app/user/user/UserView.php"
 
-leituras = []
- 
-for title_read in soap.find_all(id="titulo"):
-    leituras.append(title_read.string.strip())
-    print title_read.string.strip()
-# REmove a reflexão e deixa apenas as leituras        
-leituras.pop(len(leituras)-1)
+'''
+	Carrega a página da liturgia diária pela dia especificado nos parametros.
+'''
 
-leituras_texto = []
+def load_content_page(url,dia, mes, ano):
+	try:
+		page = urllib2.urlopen(url+"?ano="+str(ano)+"&mes="+str(mes)+"&dia="+str(dia))
+	except Exception, e:
+		print "Erro ao abrir a url"
+		raise e
 
-for title_read2 in soap.find_all(id="texto"):
-    leituras_texto.append(title_read2)
-    print title_read2
-# REmove a reflexão e deixa apenas as leituras     
-leituras_texto.pop(len(leituras_texto)-1)   
+	soap = BeautifulSoup(page)
+	#retorna um objeto do tipo BeautifulSoup
+	return soap
 
+
+def capture_leituras(soap):
+	leituras = []
+
+	for title_read in soap.find_all(id="titulo"):
+	    leituras.append(title_read.string.strip())
+
+	# Remove a reflexão e deixa apenas as leituras        
+	leituras.pop(len(leituras)-1)
+
+	#retorna um array de leituras.
+	return leituras
+
+'''
+	capturar a cor liturgica do dia.
+'''
+def captura_cor(Soap):
+	text = Soap.find(id="informacao_extra").ul.li.string.strip()
+	cor = text[:text.find(".")]
+	return cor
+
+
+soap2 = load_content_page(url_page,07, 02, 2014)
+
+print capture_leituras(soap2)
+
+print captura_cor(soap2)
 
